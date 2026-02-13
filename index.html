@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 Web Password Security Analyzer</title>
+    <!-- clean, modern font & icon -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #0b1a2e 0%, #1a2f3f 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 40px;
+            box-shadow: 0 25px 40px -10px rgba(0,0,0,0.4);
+            width: 100%;
+            max-width: 680px;
+            padding: 2.5rem 2rem;
+            transition: all 0.2s;
+        }
+        h1 {
+            font-size: 1.9rem;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 0.3rem;
+        }
+        h1 i {
+            color: #ffd966;
+            text-shadow: 0 0 8px #ffb347;
+        }
+        .subhead {
+            color: rgba(230, 244, 255, 0.8);
+            font-size: 0.95rem;
+            font-weight: 400;
+            margin-bottom: 2rem;
+            border-left: 4px solid #4ec9b0;
+            padding-left: 16px;
+            background: rgba(78, 201, 176, 0.1);
+            border-radius: 0 12px 12px 0;
+            line-height: 1.5;
+        }
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 1.8rem;
+        }
+        .input-wrapper i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,0.7);
+            font-size: 1.2rem;
+        }
+        #passwordInput {
+            width: 100%;
+            padding: 1.1rem 1.1rem 1.1rem 3.2rem;
+            font-size: 1.1rem;
+            background: rgba(10, 25, 40, 0.7);
+            border: 2px solid rgba(255,255,255,0.15);
+            border-radius: 60px;
+            color: white;
+            font-weight: 500;
+            outline: none;
+            transition: 0.2s;
+            letter-spacing: 0.3px;
+        }
+        #passwordInput:focus {
+            border-color: #4ec9b0;
+            background: rgba(10, 20, 30, 0.85);
+            box-shadow: 0 0 0 3px rgba(78, 201, 176, 0.2);
+        }
+        #passwordInput::placeholder {
+            color: rgba(200, 220, 240, 0.5);
+            font-weight: 400;
+            font-size: 1rem;
+        }
+        .toggle-visibility {
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            color: rgba(220, 240, 255, 0.8);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 50%;
+            display: flex;
+            transition: 0.2s;
+        }
+        .toggle-visibility:hover {
+            color: white;
+            background: rgba(255,255,255,0.1);
+        }
+        /* strength meter */
+        .strength-meter {
+            background: rgba(0,0,0,0.35);
+            border-radius: 30px;
+            height: 14px;
+            margin: 1.2rem 0 1rem;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .meter-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 30px;
+            transition: width 0.3s ease, background 0.2s;
+            box-shadow: 0 0 10px rgba(255,255,240,0.3);
+        }
+        .strength-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            font-weight: 500;
+            margin-top: 5px;
+        }
+        #strengthText {
+            background: rgba(255,255,255,0.1);
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .crack-time {
+            background: rgba(0, 20, 30, 0.6);
+            border-radius: 20px;
+            padding: 0.8rem 1.2rem;
+            margin: 1.8rem 0 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border: 1px solid rgba(78, 201, 176, 0.4);
+            backdrop-filter: blur(4px);
+        }
+        .crack-time i {
+            font-size: 1.8rem;
+            color: #ffbc6c;
+        }
+        .crack-estimate {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: white;
+        }
+        .crack-estimate span {
+            font-weight: 400;
+            font-size: 0.9rem;
+            color: #b4e6f0;
+            display: block;
+            margin-top: 3px;
+        }
+        /* checklist grid */
+        .criteria-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem 1.5rem;
+            margin-top: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        .criteria-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255,255,255,0.9);
+            font-size: 0.98rem;
+            background: rgba(255,255,255,0.03);
+            padding: 0.55rem 0.8rem;
+            border-radius: 40px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.1s;
+        }
+        .criteria-item i {
+            width: 22px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        .fa-circle-check { color: #4ec9b0; text-shadow: 0 0 6px #1f8a7c; }
+        .fa-circle-xmark { color: #f47c7c; text-shadow: 0 0 4px #b34141; }
+        .default-icon { color: rgba(255,255,255,0.3); }
+        .footer-tip {
+            color: rgba(210, 230, 250, 0.8);
+            font-size: 0.85rem;
+            text-align: center;
+            margin-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 1.5rem;
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+        .footer-tip i {
+            margin-right: 6px;
+            color: #ffbc6c;
+        }
+        @media (max-width: 500px) {
+            .glass-panel { padding: 1.8rem 1.2rem; }
+            .criteria-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="glass-panel">
+        <h1>
+            <i class="fas fa-shield-hal"></i> Password Vitals
+        </h1>
+        <div class="subhead">
+            <i class="fas fa-robot" style="margin-right: 8px;"></i> Real‑time analysis · entropy check · crack simulation
+        </div>
+
+        <!-- password input + visibility toggle -->
+        <div class="input-wrapper">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="passwordInput" placeholder="Type your password..." autocomplete="off" spellcheck="false">
+            <button class="toggle-visibility" id="toggleBtn" aria-label="Show password">
+                <i class="far fa-eye-slash" id="toggleIcon"></i>
+            </button>
+        </div>
+
+        <!-- strength meter & label -->
+        <div class="strength-meter">
+            <div class="meter-fill" id="meterFill" style="width: 0%;"></div>
+        </div>
+        <div class="strength-label">
+            <span style="display: flex; gap: 6px;"><i class="fas fa-chart-line"></i> Password strength</span>
+            <span id="strengthText">—</span>
+        </div>
+
+        <!-- crack time estimation card -->
+        <div class="crack-time">
+            <i class="fas fa-clock"></i>
+            <div class="crack-estimate">
+                <span id="crackValue">Enter password</span>
+                <span>estimated time to crack</span>
+            </div>
+        </div>
+
+        <!-- detailed security checklist -->
+        <div style="font-weight: 500; color: white; margin-bottom: 6px; display: flex; gap: 8px;">
+            <i class="fas fa-clipboard-list"></i> Security requirements
+        </div>
+        <div class="criteria-grid" id="criteriaGrid">
+            <!-- dynamically updated via JS, but we fill with static placeholders -->
+            <div class="criteria-item" id="critLength"><i class="fas fa-circle-xmark default-icon"></i> 12+ characters</div>
+            <div class="criteria-item" id="critUpper"><i class="fas fa-circle-xmark default-icon"></i> Uppercase</div>
+            <div class="criteria-item" id="critLower"><i class="fas fa-circle-xmark default-icon"></i> Lowercase</div>
+            <div class="criteria-item" id="critNumber"><i class="fas fa-circle-xmark default-icon"></i> Number</div>
+            <div class="criteria-item" id="critSpecial"><i class="fas fa-circle-xmark default-icon"></i> Special char</div>
+            <div class="criteria-item" id="critCommon"><i class="fas fa-circle-xmark default-icon"></i> Not common</div>
+        </div>
+
+        <div class="footer-tip">
+            <span><i class="fas fa-dice-d6"></i> Entropy bits: <span id="entropyBits">0</span></span>
+            <span><i class="fas fa-triangle-exclamation"></i> No personal info</span>
+            <span><i class="fas fa-bolt"></i> Avoid repeated chars</span>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            "use strict";
+
+            // ----- DOM elements -----
+            const passwordInput = document.getElementById('passwordInput');
+            const toggleBtn = document.getElementById('toggleBtn');
+            const toggleIcon = document.getElementById('toggleIcon');
+            const meterFill = document.getElementById('meterFill');
+            const strengthText = document.getElementById('strengthText');
+            const crackValue = document.getElementById('crackValue');
+            const entropyBitsSpan = document.getElementById('entropyBits');
+
+            // criteria items
+            const critLength = document.getElementById('critLength');
+            const critUpper = document.getElementById('critUpper');
+            const critLower = document.getElementById('critLower');
+            const critNumber = document.getElementById('critNumber');
+            const critSpecial = document.getElementById('critSpecial');
+            const critCommon = document.getElementById('critCommon');
+
+            // ----- common password list (simplified blacklist) -----
+            const commonPasswords = [
+                "password", "123456", "12345678", "1234", "qwerty", "12345", "dragon", "baseball", 
+                "football", "letmein", "monkey", "abc123", "111111", "mustang", "access", "shadow",
+                "master", "superman", "696969", "123123", "batman", "trustno1", "welcome", "admin",
+                "password1", "iloveyou", "sunshine", "princess", "azerty", "qwertyuiop", "qwerty123",
+                "passw0rd", "admin123", "hello123", "lovely", "!@#$%^&*", "root", "654321", "1234567890"
+            ];
+
+            // ----- helper: password char checks -----
+            function hasUppercase(str) {
+                return /[A-Z]/.test(str);
+            }
+            function hasLowercase(str) {
+                return /[a-z]/.test(str);
+            }
+            function hasNumber(str) {
+                return /[0-9]/.test(str);
+            }
+            function hasSpecialChar(str) {
+                return /[^A-Za-z0-9]/.test(str); // any non-alphanumeric (space, symbol, etc.)
+            }
+
+            // ----- blacklist check (case-insensitive) -----
+            function isCommonPassword(pwd) {
+                const lower = pwd.toLowerCase();
+                if (commonPasswords.includes(lower)) return true;
+                // also check for obvious pattern: repeating '123', 'qwe' etc.
+                if (/^(123|abc|qwe|password|pass|admin|letmein|iloveyou|welcome|monkey|dragon|sunshine|master|shadow|football|baseball|!@#)/i.test(lower) && pwd.length < 10) 
+                    return true;
+                return false;
+            }
+
+            // ----- entropy approximation (NIST-style, simple) -----
+            function estimateEntropy(pwd) {
+                if (pwd.length === 0) return 0;
+                let pool = 0;
+                if (/[a-z]/.test(pwd)) pool += 26;
+                if (/[A-Z]/.test(pwd)) pool += 26;
+                if (/[0-9]/.test(pwd)) pool += 10;
+                if (/[^A-Za-z0-9]/.test(pwd)) pool += 32; // ~ special chars
+                // tiny adjustment for very small pool
+                if (pool === 0) pool = 1; 
+                let entropy = pwd.length * Math.log2(pool);
+                // reduce entropy for common repeats (simple penalty)
+                const repeats = pwd.length - new Set(pwd.split('')).size;
+                entropy -= repeats * 1.2;
+                if (entropy < 0) entropy = 0;
+                return Math.round(entropy * 10) / 10;
+            }
+
+            // ----- crack time estimation (realistic simulation) -----
+            function estimateCrackTime(pwd, strengthScore) {
+                if (!pwd || pwd.length === 0) return 'Enter password';
+                if (isCommonPassword(pwd) && pwd.length > 0) return 'Instantly (common)';
+                const entropy = estimateEntropy(pwd);
+                // assume 10 billion guesses/sec (modern GPU cluster)
+                const guessesPerSecond = 10_000_000_000;
+                let possibleGuesses;
+                if (entropy === 0) possibleGuesses = 1;
+                else possibleGuesses = Math.pow(2, entropy);
+                // time in seconds
+                let seconds = possibleGuesses / guessesPerSecond;
+                if (seconds < 0) seconds = 0;
+                
+                if (seconds < 0.001) return 'Instantly';
+                if (seconds < 60) return '< 1 minute';
+                if (seconds < 3600) return Math.floor(seconds / 60) + ' minutes';
+                if (seconds < 86400) return Math.floor(seconds / 3600) + ' hours';
+                if (seconds < 31536000) return Math.floor(seconds / 86400) + ' days';
+                let years = seconds / 31536000;
+                if (years < 1000) return years.toFixed(1) + ' years';
+                if (years < 1000000) return Math.floor(years / 1000) + ' thousand years';
+                if (years < 10000000) return Math.floor(years / 1000000) + ' million years';
+                return 'centuries+';
+            }
+
+            // ----- main update function (analyze password)-----
+            function analyzePassword() {
+                const pwd = passwordInput.value;
+                const len = pwd.length;
+                
+                // 1. criteria checks
+                const lengthValid = len >= 12;
+                const upperValid = hasUppercase(pwd);
+                const lowerValid = hasLowercase(pwd);
+                const numberValid = hasNumber(pwd);
+                const specialValid = hasSpecialChar(pwd);
+                const commonValid = pwd.length > 0 ? !isCommonPassword(pwd) : true; // if empty we show false later.
+
+                // 2. update criteria icons and text (with dynamic class)
+                updateCriteria(critLength, lengthValid, '12+ characters');
+                updateCriteria(critUpper, upperValid, 'Uppercase');
+                updateCriteria(critLower, lowerValid, 'Lowercase');
+                updateCriteria(critNumber, numberValid, 'Number');
+                updateCriteria(critSpecial, specialValid, 'Special char');
+                updateCriteria(critCommon, commonValid, 'Not common');
+
+                // 3. calculate strength score (0-100)
+                let score = 0;
+                if (len > 0) {
+                    // base score from length (max 35)
+                    score += Math.min(35, len * 2.5);
+                    // complexity bonuses
+                    if (upperValid) score += 10;
+                    if (lowerValid) score += 8;
+                    if (numberValid) score += 10;
+                    if (specialValid) score += 15;
+                    if (lengthValid) score += 12; // extra for reaching 12
+                    if (commonValid) score += 10; 
+                    else score -= 25; // severe penalty for common password
+                    // penalty if too short
+                    if (len < 8) score -= 20;
+                    // extra penalty if only letters or only numbers
+                    if (/^[a-zA-Z]+$/.test(pwd) && len < 12) score -= 10;
+                    if (/^[0-9]+$/.test(pwd) && len > 0) score -= 15;
+                }
+                // clamp
+                score = Math.min(100, Math.max(0, score));
+
+                // 4. update meter & strength label
+                meterFill.style.width = score + '%';
+                let strengthCategory = '';
+                let meterColor = '';
+                if (score < 20) { strengthCategory = 'Very weak'; meterColor = '#c43e3e'; }
+                else if (score < 40) { strengthCategory = 'Weak'; meterColor = '#e68a2e'; }
+                else if (score < 60) { strengthCategory = 'Fair'; meterColor = '#dfc04a'; }
+                else if (score < 80) { strengthCategory = 'Good'; meterColor = '#6fbf73'; }
+                else { strengthCategory = 'Excellent'; meterColor = '#4ec9b0'; }
+                
+                if (pwd.length === 0) {
+                    strengthCategory = '—';
+                    meterColor = '#555';
+                }
+                meterFill.style.background = meterColor;
+                strengthText.textContent = strengthCategory;
+
+                // 5. crack time estimation
+                crackValue.textContent = estimateCrackTime(pwd, score);
+
+                // 6. entropy bits
+                const entropy = estimateEntropy(pwd);
+                entropyBitsSpan.textContent = entropy;
+
+                // handle edge: if empty
+                if (pwd.length === 0) {
+                    crackValue.textContent = 'Enter password';
+                    entropyBitsSpan.textContent = '0';
+                    meterFill.style.width = '0%';
+                    strengthText.textContent = '—';
+                    // reset all criteria to default xmark
+                    resetCriteriaToDefault();
+                }
+            }
+
+            // helper: update single criteria icon & text
+            function updateCriteria(element, isValid, baseText) {
+                const icon = element.querySelector('i');
+                if (passwordInput.value.length === 0) {
+                    // blank state
+                    icon.className = 'fas fa-circle-xmark default-icon';
+                    element.style.color = 'rgba(255,255,255,0.6)';
+                    return;
+                }
+                if (isValid) {
+                    icon.className = 'fas fa-circle-check';
+                    element.style.color = 'white';
+                } else {
+                    icon.className = 'fas fa-circle-xmark';
+                    element.style.color = 'rgba(255,255,255,0.8)';
+                }
+                // ensure text stays (prevent removal)
+                if (!element.innerHTML.includes(baseText)) {
+                    // but our structure is simple: icon + text. safeguard:
+                    const textNode = element.childNodes[2] || element.childNodes[1];
+                    if (textNode) textNode.nodeValue = ' ' + baseText;
+                }
+            }
+
+            // reset when empty
+            function resetCriteriaToDefault() {
+                const criteriaItems = [critLength, critUpper, critLower, critNumber, critSpecial, critCommon];
+                criteriaItems.forEach(item => {
+                    const icon = item.querySelector('i');
+                    icon.className = 'fas fa-circle-xmark default-icon';
+                    item.style.color = 'rgba(255,255,255,0.6)';
+                });
+                // restore text if missing (ensure)
+                critLength.innerHTML = '<i class="fas fa-circle-xmark default-icon"></i> 12+ characters';
+                critUpper.innerHTML = '<i class="fas fa-circle-xmark default-icon"></i> Uppercase';
+                critLower.innerHTML = '<i class="fas fa-circle-xmark default-icon"></i> Lowercase';
+                critNumber.innerHTML = '<i class="fas fa-circle-xmark default-icon"></i> Number';
+                critSpecial.innerHTML = '<i class="fas fa-circle-xmark default-icon"></i> Special char';
+                critCommon.innerHTML = '<i class="fas fa-circle-xmark default-icon"></i> Not common';
+            }
+
+            // ----- toggle password visibility -----
+            function toggleVisibility() {
+                const type = passwordInput.type === 'password' ? 'text' : 'password';
+                passwordInput.type = type;
+                // toggle icon
+                if (type === 'text') {
+                    toggleIcon.className = 'far fa-eye';
+                } else {
+                    toggleIcon.className = 'far fa-eye-slash';
+                }
+            }
+
+            // ----- event listeners -----
+            passwordInput.addEventListener('input', analyzePassword);
+            toggleBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                toggleVisibility();
+            });
+
+            // initial analysis (empty state)
+            analyzePassword();
+
+            // force set icons for empty state again (just ensure)
+            if (passwordInput.value === '') {
+                resetCriteriaToDefault();
+            }
+
+            // ensure that password managers don't conflict, focus handling
+            passwordInput.addEventListener('focus', () => {});
+        })();
+    </script>
+</body>
+</html>
